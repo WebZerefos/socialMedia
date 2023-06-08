@@ -21,8 +21,19 @@ const App = () => {
 
 	const pageSize = 4
 	const [pageNumber, setPageNumber] = useState(1)
-	const [isloading, setIsloading] = useState(false)
-	const [renderData, setRenderData] = useState([])
+	const [isLoading, setIsloading] = useState(false)
+	const [renderData, setRenderData] = useState(data.slice(0, pageSize))
+
+	const pagination = (data, pageNumber, pageSize) => {
+		let startIndex = (pageNumber - 1) * pageSize
+
+		if (startIndex >= data.length) {
+			return []
+		}
+		setPageNumber(pageNumber)
+
+		return data.slice(startIndex, startIndex + pageSize)
+	}
 
 	return (
 		<SafeAreaView>
@@ -40,15 +51,25 @@ const App = () => {
 						</View>
 					</Pressable>
 				</View>
-				<View>
+				<View style={styles.useStoryContainer}>
 					<FlatList
+						onMomentumScrollBegin={() => setIsloading(false)}
+						onEndReachedThreshold={0.5}
+						onEndReached={() => {
+							if (!isLoading) {
+								setIsloading(true)
+								setRenderData((prev) => [...prev, ...pagination(data, pageNumber + 1, pageSize)])
+								setIsloading(false)
+							}
+						}}
+						keyExtractor={(item) => item.id.toString()}
 						horizontal
 						showsHorizontalScrollIndicator={false}
-						data={data}
-						keyExtractor={(item) => item.id}
+						data={renderData}
 						renderItem={({ item }) => <UserStory name={item.name} />}
 					/>
 				</View>
+				<View style={styles.userPostContainer}></View>
 			</ScrollView>
 		</SafeAreaView>
 	)
@@ -84,5 +105,14 @@ const styles = StyleSheet.create({
 		color: '#ffffff',
 		fontWeight: '600',
 		fontSize: 8,
+	},
+	useStoryContainer: {
+		paddingHorizontal: 26,
+		paddingTop: 30,
+	},
+	userPostContainer: {
+		marginTop: 30,
+		height: 100,
+		paddingHorizontal: 26,
 	},
 })
